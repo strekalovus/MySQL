@@ -1,0 +1,149 @@
+CREATE DATABASE autoru;
+
+
+USE autoru;
+
+
+CREATE TABLE users (
+	id INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    phone VARCHAR(12) UNIQUE NOT NULL,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE profiles (
+	id INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    b_date DATE,
+	user_id INT UNIQUE NOT NULL,
+    country VARCHAR(100),
+    city VARCHAR(100),
+    profile_status ENUM('ONLINE', 'OFFLINE', 'INACTIVE'),
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+ALTER TABLE profiles ADD CONSTRAINT fk_profiles_user_id FOREIGN KEY (user_id) REFERENCES users(id);
+
+
+CREATE TABLE engine_type (
+    `name` VARCHAR(100) NOT NULL PRIMARY KEY
+);
+
+
+CREATE TABLE body_type (
+    `name` VARCHAR(100) NOT NULL PRIMARY KEY
+);
+
+
+CREATE TABLE drive_type (
+    `name` VARCHAR(100) NOT NULL PRIMARY KEY
+);
+
+
+CREATE TABLE transmission_type (
+    `name` VARCHAR(100) NOT NULL PRIMARY KEY
+);
+
+
+CREATE TABLE catalog_cars (
+	id INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    brand VARCHAR(100),
+    model VARCHAR(100),
+    start_prod DATE,
+    end_prod DATE,
+    brand_country VARCHAR(100),
+    engine_type VARCHAR(100),
+    body_type VARCHAR(100),
+    drive_type VARCHAR(100),
+    transmission_type VARCHAR(100),
+	vehicle_id INT UNIQUE NOT NULL,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+ALTER TABLE catalog_cars ADD CONSTRAINT fk_engine_type FOREIGN KEY (engine_type) REFERENCES engine_type(`name`);
+ALTER TABLE catalog_cars ADD CONSTRAINT fk_body_type FOREIGN KEY (body_type) REFERENCES body_type(`name`);
+ALTER TABLE catalog_cars ADD CONSTRAINT fk_drive_type FOREIGN KEY (drive_type) REFERENCES drive_type(`name`);
+ALTER TABLE catalog_cars ADD CONSTRAINT fk_transmission_type FOREIGN KEY (transmission_type) REFERENCES transmission_type(`name`);
+
+
+CREATE TABLE vehicles (
+	id INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    vin VARCHAR(17),
+    reg_num VARCHAR(9),
+    year_prod VARCHAR(4),
+    color VARCHAR(100),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+ALTER TABLE vehicles ADD CONSTRAINT fk_vehicles_catalog_car_id FOREIGN KEY (catalog_car_id) REFERENCES catalog_cars(id);
+
+
+CREATE TABLE messages (
+	id INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	from_user_id INT NOT NULL,
+	to_user_id INT NOT NULL,
+	message_header VARCHAR(255),
+	message_body TEXT NOT NULL,
+	sent_flag TINYINT NOT NULL,
+	recieved_flag TINYINT NOT NULL,
+	edited_flag TINYINT NOT NULL,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+ALTER TABLE messages ADD CONSTRAINT fk_messages_from_user_id FOREIGN KEY (from_user_id) REFERENCES users(id);
+ALTER TABLE messages ADD CONSTRAINT fk_messages_to_user_id FOREIGN KEY (to_user_id) REFERENCES users(id);
+
+
+CREATE TABLE sale_status (
+    `value` VARCHAR(100) NOT NULL PRIMARY KEY
+);
+
+
+CREATE TABLE sales (
+	id INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	user_id INT NOT NULL,
+	vehicle_id INT NOT NULL,
+	sale_body TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+ALTER TABLE sales ADD CONSTRAINT fk_sales_user_id FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE sales ADD CONSTRAINT fk_sales_vehicle_id FOREIGN KEY (vehicle_id) REFERENCES vehicle(id);
+ALTER TABLE sales ADD CONSTRAINT fk_sales_sale_status FOREIGN KEY (sale_status) REFERENCES sale_status(`value`);
+
+
+CREATE TABLE foto (
+	id INT UNSIGNED AUTO_INCREMENT NOT NULL PRIMARY KEY,
+	user_id INT NOT NULL,
+	link VARCHAR(1000) NOT NULL,
+    metadata JSON,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+ALTER TABLE foto ADD CONSTRAINT fk_foto_user_id FOREIGN KEY (user_id) REFERENCES users(id);
+
+
+CREATE TABLE sales_foto (
+	sale_id INT UNSIGNED NOT NULL,
+	foto_id INT UNSIGNED NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (sale_id, foto_id)
+);
+ALTER TABLE sales_foto ADD CONSTRAINT fk_sf_sale_id FOREIGN KEY (sale_id) REFERENCES sales(id);
+ALTER TABLE sales_foto ADD CONSTRAINT fk_sf_foto_id FOREIGN KEY (foto_id) REFERENCES foto(id);
+
+
+CREATE TABLE messages_foto (
+	message_id INT UNSIGNED NOT NULL,
+	foto_id INT UNSIGNED NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (message_id, foto_id)
+);
+ALTER TABLE messages_foto ADD CONSTRAINT fk_mf_message_id FOREIGN KEY (message_id) REFERENCES messages(id);
+ALTER TABLE messages_foto ADD CONSTRAINT fk_mf_foto_id FOREIGN KEY (foto_id) REFERENCES foto(id);
+
